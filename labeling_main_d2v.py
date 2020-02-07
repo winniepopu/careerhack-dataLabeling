@@ -16,6 +16,7 @@ image_list = []
 name_list = []
 bbox_list = []
 put_in_json = []
+run_first = False
 
 
 class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
@@ -116,7 +117,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
 ############################################
     def next(self):
         self.get_select_vec()
-        # self.write_json()
+        self.write_json()
         self.cursor += 1
         bbox_list.clear()
         put_in_json.clear()
@@ -141,12 +142,15 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
             name_list[self.cursor][:-3] + 'json'  # set my_line dir
         self.my_line_list = json.load(open(myline_path, 'r'))
 
+        global run_first
+        run_first = False
+
         self.update()
 
 ############################################
     def last(self):
         self.get_select_vec()
-        # self.write_json()
+        self.write_json()
         self.cursor -= 1
         bbox_list.clear()
         put_in_json.clear()
@@ -170,6 +174,9 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         myline_path = './my_line/' + \
             name_list[self.cursor][:-3] + 'json'  # set my_line dir
         self.my_line_list = json.load(open(myline_path, 'r'))
+
+        global run_first
+        run_first = False
 
         self.update()
 
@@ -227,12 +234,31 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         json_dict = json.load(open(json_path, 'r'))
         json_rotate = json_dict['recognitionResults'][0]['clockwiseOrientation']
         json_line = json_dict['recognitionResults'][0]['lines']
-        self.mark_line(qp, json_rotate)
+        mark_bbox = self.mark_line(qp, json_rotate)
+        mark_first = 0
+        global run_first
         qp.setPen(QPen(QColor(200, 0, 0),  1, QtCore.Qt.SolidLine))
         for line in json_line:
             for word in line['words']:
                 bbox_list.append(word)
                 line_position = word['boundingBox']
+                if run_first == False:
+                    if mark_bbox == None:
+                        pass
+                    elif (line_position[0] + line_position[2])/2>=mark_bbox[0] and (line_position[1] + line_position[7])/2>=mark_bbox[1] and (line_position[0] + line_position[2])/2<=mark_bbox[4] and (line_position[1] + line_position[7])/2<=mark_bbox[5]:
+                    
+                        if (mark_bbox[0] + mark_bbox[2])/2 < (line_position[0] + line_position[2])/2:
+                            m_brush = QBrush(QColor(0, 200, 200, 100), QtCore.Qt.SolidPattern)
+                            qp.setBrush(m_brush)
+                            mark_first = 1
+                        
+                    else:
+                        qp.setBrush(QtCore.Qt.NoBrush)
+                        mark_first = 0
+
+                    if mark_first == 1:
+                        put_in_json.append(word)
+
                 if abs(json_rotate-360) < 45 or abs(json_rotate) < 45:
                     self.rotate_type = 0
                     points = [QPoint(line_position[0]*self.resize_ratio, line_position[1]*self.resize_ratio), QPoint(line_position[2]*self.resize_ratio, line_position[3]*self.resize_ratio), QPoint(
@@ -257,8 +283,10 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                         line_position[4]*self.resize_ratio, self.label.height()-line_position[5]*self.resize_ratio), QPoint(line_position[6]*self.resize_ratio, self.label.height()-line_position[7]*self.resize_ratio)]
                     qp.drawPolygon(QPolygon(points))
 
+        run_first = True
+
 ############################################
-    def mark_line(self, qp, json_rotate):
+    def mark_line(self,qp,json_rotate): 
         if self.key_word == '':
             return
         #key = word_tokenize(self.key_word)
@@ -267,44 +295,41 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         most_sim_index = 0
         count = 0
         for i in self.my_line_list:
-            infer_test = self.d2v.infer_vector(
-                doc_words=word_tokenize(i['text']), alpha=0.025, steps=500)
-            sims = self.d2v.docvecs.most_similar([infer_test], topn=1)
+            infer_test = self.d2v.infer_vector(doc_words=word_tokenize(i['text']),alpha=0.025,steps=500)
+            sims = self.d2v.docvecs.most_similar([infer_test],topn=1)
             given = sims[0][0]
-            prob = self.d2v.docvecs.similarity(self.key_word, given)
+            prob = self.d2v.docvecs.similarity(self.key_word,given)
+            
             if count == 0:
                 most_sim_prob = prob
                 most_sim_index = count
             elif prob > most_sim_prob:
                 most_sim_prob = prob
                 most_sim_index = count
-            count += 1
-        # print(self.my_line_list[most_sim_index]['text'],most_sim_prob)
+            count+=1
+        #print(self.my_line_list[most_sim_index]['text'],most_sim_prob)
         mark_bbox = self.my_line_list[most_sim_index]['boundingBox']
         qp.setPen(QtCore.Qt.NoPen)
         brush = QBrush(QColor(200, 200, 0, 100), QtCore.Qt.SolidPattern)
         qp.setBrush(brush)
-        if abs(json_rotate-360) < 45 or abs(json_rotate) < 45:
-            points = [QPoint(mark_bbox[0]*self.resize_ratio, mark_bbox[1]*self.resize_ratio), QPoint(mark_bbox[2]*self.resize_ratio, mark_bbox[3]*self.resize_ratio),
-                      QPoint(mark_bbox[4]*self.resize_ratio, mark_bbox[5]*self.resize_ratio), QPoint(mark_bbox[6]*self.resize_ratio, mark_bbox[7]*self.resize_ratio)]
-            qp.drawPolygon(QPolygon(points))
-
-        elif abs(json_rotate-90) < 45:
-            points = [QPoint(mark_bbox[1]*self.resize_ratio, self.label.height()-mark_bbox[0]*self.resize_ratio), QPoint(mark_bbox[3]*self.resize_ratio, self.label.height()-mark_bbox[2]*self.resize_ratio),
-                      QPoint(mark_bbox[5]*self.resize_ratio, self.label.height()-mark_bbox[4]*self.resize_ratio), QPoint(mark_bbox[7]*self.resize_ratio, self.label.height()-mark_bbox[6]*self.resize_ratio)]
-            qp.drawPolygon(QPolygon(points))
-
-        elif abs(json_rotate-270) < 45:
-            points = [QPoint(mark_bbox[1]*self.resize_ratio, mark_bbox[0]*self.resize_ratio), QPoint(mark_bbox[3]*self.resize_ratio, mark_bbox[2]*self.resize_ratio),
-                      QPoint(mark_bbox[5]*self.resize_ratio, mark_bbox[4]*self.resize_ratio), QPoint(mark_bbox[7]*self.resize_ratio, mark_bbox[6]*self.resize_ratio)]
-            qp.drawPolygon(QPolygon(points))
-
-        elif abs(json_rotate-180) < 45:
-            points = [QPoint(mark_bbox[0]*self.resize_ratio, self.label.height()-mark_bbox[1]*self.resize_ratio), QPoint(mark_bbox[2]*self.resize_ratio, self.label.height()-mark_bbox[3]*self.resize_ratio),
-                      QPoint(mark_bbox[4]*self.resize_ratio, self.label.height()-mark_bbox[5]*self.resize_ratio), QPoint(mark_bbox[6]*self.resize_ratio, self.label.height()-mark_bbox[7]*self.resize_ratio)]
+        if abs(json_rotate-360)<45 or abs(json_rotate)<45:
+            points = [QPoint(mark_bbox[0]*self.resize_ratio, mark_bbox[1]*self.resize_ratio), QPoint(mark_bbox[2]*self.resize_ratio, mark_bbox[3]*self.resize_ratio), QPoint(mark_bbox[4]*self.resize_ratio, mark_bbox[5]*self.resize_ratio), QPoint(mark_bbox[6]*self.resize_ratio, mark_bbox[7]*self.resize_ratio)]
+            qp.drawPolygon(QPolygon(points))                  
+                    
+        elif abs(json_rotate-90)<45:
+            points = [QPoint(mark_bbox[1]*self.resize_ratio, self.label.height()-mark_bbox[0]*self.resize_ratio), QPoint(mark_bbox[3]*self.resize_ratio, self.label.height()-mark_bbox[2]*self.resize_ratio), QPoint(mark_bbox[5]*self.resize_ratio, self.label.height()-mark_bbox[4]*self.resize_ratio), QPoint(mark_bbox[7]*self.resize_ratio, self.label.height()-mark_bbox[6]*self.resize_ratio)]
+            qp.drawPolygon(QPolygon(points))              
+                    
+        elif abs(json_rotate-270)<45:
+            points = [QPoint(mark_bbox[1]*self.resize_ratio, mark_bbox[0]*self.resize_ratio), QPoint(mark_bbox[3]*self.resize_ratio, mark_bbox[2]*self.resize_ratio), QPoint(mark_bbox[5]*self.resize_ratio, mark_bbox[4]*self.resize_ratio), QPoint(mark_bbox[7]*self.resize_ratio, mark_bbox[6]*self.resize_ratio)]
+            qp.drawPolygon(QPolygon(points))             
+                    
+        elif abs(json_rotate-180)<45:
+            points = [QPoint(mark_bbox[0]*self.resize_ratio, self.label.height()-mark_bbox[1]*self.resize_ratio), QPoint(mark_bbox[2]*self.resize_ratio, self.label.height()-mark_bbox[3]*self.resize_ratio), QPoint(mark_bbox[4]*self.resize_ratio, self.label.height()-mark_bbox[5]*self.resize_ratio), QPoint(mark_bbox[6]*self.resize_ratio, self.label.height()-mark_bbox[7]*self.resize_ratio)]
             qp.drawPolygon(QPolygon(points))
 
         qp.setBrush(QtCore.Qt.NoBrush)
+        return mark_bbox
 
 ############################################
     def Cancel(self):
