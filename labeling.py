@@ -21,11 +21,17 @@ class Ui_MainWindow(object):
         self.label.setText("")
         self.label.setObjectName("label")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(850, 40, 115, 30))
+        self.pushButton.setGeometry(QtCore.QRect(850, 100, 115, 30))
         self.pushButton.setObjectName("pushButton")
+
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(850, 100, 115, 30))
+        self.pushButton_2.setGeometry(QtCore.QRect(850, 160, 115, 30))
         self.pushButton_2.setObjectName("pushButton_2")
+
+        self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_3.setGeometry(QtCore.QRect(850, 40, 115, 30))
+        self.pushButton_3.setObjectName("pushButton_3")
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 35))
@@ -38,6 +44,8 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.pushButton.clicked.connect(MainWindow.next)
         self.pushButton_2.clicked.connect(MainWindow.reset)
+        self.pushButton_3.clicked.connect(MainWindow.last)
+
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -45,6 +53,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.pushButton.setText(_translate("MainWindow", "next"))
         self.pushButton_2.setText(_translate("MainWindow", "reset"))
+        self.pushButton_3.setText(_translate("MainWindow", "last"))
 
     def changeStatus(self, MainWindow, filename):
         _translate = QtCore.QCoreApplication.translate
