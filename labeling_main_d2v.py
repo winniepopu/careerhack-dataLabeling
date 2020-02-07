@@ -111,11 +111,12 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                 else:
                     print(m_x, m_y)
                     is_find = True
+                    # print(bbox)
                     put_in_json.append(bbox)
                     break
 
             if is_find == False:
-                print('this position dosen\'t have bbox!')
+                print('this position doesn\'t have bbox!')
                 
             '''if self.rotate_type == 0:
                 in_bbox = list(map(lambda bbox: bbox['boundingBox'][0]*self.resize_ratio <= m_x and bbox['boundingBox'][1]*self.resize_ratio <=
@@ -223,6 +224,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
 
         # remove the redundant tokens ('index', 'confidence')
         for bbox in put_in_json:
+            # print(bbox)
             if bbox.__contains__('confidence'):
                 del bbox['confidence']
             if bbox.__contains__('index'):
@@ -231,6 +233,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         output_format = {'text': '', 'elements': []}
         text = ''
         for bbox in put_in_json:
+            # print(bbox)
             if ('text' in bbox) == False:
                 continue
             text += bbox['text']+' '
