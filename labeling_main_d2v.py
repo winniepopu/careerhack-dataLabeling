@@ -10,6 +10,7 @@ import glob
 import json
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from nltk.tokenize import word_tokenize
+import numpy as np
 import pdb
 
 image_list = []
@@ -84,8 +85,39 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         if event.button() == QtCore.Qt.LeftButton:
             m_x = event.pos().x()
             m_y = event.pos().y()
-            in_bbox = []
-            if self.rotate_type == 0:
+            #in_bbox = []
+            is_find = False
+            for bbox in bbox_list:
+                bbox_vec = np.array([bbox['boundingBox'][2]*self.resize_ratio - bbox['boundingBox'][0]*self.resize_ratio, bbox['boundingBox'][3]*self.resize_ratio - bbox['boundingBox'][1]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][0]*self.resize_ratio, m_y - bbox['boundingBox'][1]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    continue
+                bbox_vec = np.array([bbox['boundingBox'][4]*self.resize_ratio - bbox['boundingBox'][2]*self.resize_ratio, bbox['boundingBox'][5]*self.resize_ratio - bbox['boundingBox'][3]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][2]*self.resize_ratio, m_y - bbox['boundingBox'][3]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    continue
+                bbox_vec = np.array([bbox['boundingBox'][6]*self.resize_ratio - bbox['boundingBox'][4]*self.resize_ratio, bbox['boundingBox'][7]*self.resize_ratio - bbox['boundingBox'][5]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][4]*self.resize_ratio, m_y - bbox['boundingBox'][5]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    continue
+                bbox_vec = np.array([bbox['boundingBox'][0]*self.resize_ratio - bbox['boundingBox'][6]*self.resize_ratio, bbox['boundingBox'][1]*self.resize_ratio - bbox['boundingBox'][7]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][6]*self.resize_ratio, m_y - bbox['boundingBox'][7]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    continue
+                else:
+                    print(m_x, m_y)
+                    is_find = True
+                    put_in_json.append(bbox)
+                    break
+
+            if is_find == False:
+                print('this position dosen\'t have bbox!')
+                
+            '''if self.rotate_type == 0:
                 in_bbox = list(map(lambda bbox: bbox['boundingBox'][0]*self.resize_ratio <= m_x and bbox['boundingBox'][1]*self.resize_ratio <=
                                    m_y and bbox['boundingBox'][4]*self.resize_ratio >= m_x and bbox['boundingBox'][5]*self.resize_ratio >= m_y, bbox_list))
             elif self.rotate_type == 1:
@@ -103,7 +135,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                 which_bbox = in_bbox.index(True)
                 put_in_json.append(bbox_list[which_bbox])
             except ValueError:
-                print('this position dosen\'t have bbox!')
+                print('this position dosen\'t have bbox!')'''
 
 ############################################
     def keyPressEvent(self, event):
