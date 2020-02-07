@@ -13,23 +13,23 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1000, 1000)
+        MainWindow.resize(900, 600)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(0, 0, 800, 1000))
+        self.label.setGeometry(QtCore.QRect(0, 0, 600, 600))
         self.label.setText("")
         self.label.setObjectName("label")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(850, 100, 115, 30))
+        self.pushButton.setGeometry(QtCore.QRect(650, 100, 115, 30))
         self.pushButton.setObjectName("pushButton")
 
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(850, 160, 115, 30))
+        self.pushButton_2.setGeometry(QtCore.QRect(650, 160, 115, 30))
         self.pushButton_2.setObjectName("pushButton_2")
 
         self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_3.setGeometry(QtCore.QRect(850, 40, 115, 30))
+        self.pushButton_3.setGeometry(QtCore.QRect(650, 40, 115, 30))
         self.pushButton_3.setObjectName("pushButton_3")
 
         MainWindow.setCentralWidget(self.centralwidget)
