@@ -185,6 +185,17 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         #print(put_in_json)
         if len(put_in_json) == 0:
             return
+
+        # sort the lift of dict according to their value in 'index' (ascending order)
+        put_in_json.sort(key=lambda k: k['index'], reverse=False)
+
+        # remove the redundant tokens ('index', 'confidence')
+        for bbox in put_in_json:
+            if bbox.__contains__('confidence'):
+                del bbox['confidence']
+            if bbox.__contains__('index'):
+                del bbox['index']
+        
         output_format = {'text': '', 'elements': []}
         text = ''
         for bbox in put_in_json:
@@ -241,9 +252,16 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         mark_first = 0
         global run_first
         qp.setPen(QPen(QColor(200, 0, 0),  1, QtCore.Qt.SolidLine))
+
+        # the index of bbox
+        box_index = 0
         for line in json_line:
             for word in line['words']:
+                # adding index to dict (used for sorting)
+                word['index'] = box_index
+                box_index = box_index + 1
                 bbox_list.append(word)
+                # print(word)
                 line_position = word['boundingBox']
                 if run_first == False:
                     if mark_bbox == None:
