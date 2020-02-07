@@ -70,6 +70,7 @@ def main():
             if is_identical(ground_truth_file, candidate_file):
                 correct += 1
             else:
+                print("file : ", candidate_file)
                 wrong += 1
 
     return score(correct, wrong)

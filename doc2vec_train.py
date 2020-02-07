@@ -20,43 +20,75 @@ for filename in glob.glob('./train/train/Input/*.json'):###set input dir #./trai
 ###### find line
 count = 0
 for afile in json_list:
+    json_rotate = afile['recognitionResults'][0]['clockwiseOrientation']
     my_line_str = ''
     last_x = -1
     lu_b_x = 0
     lu_b_y = 0
     rd_b_x = 0
     rd_b_y = 0
-    for line in afile['recognitionResults'][0]['lines']: 
-        if last_x == -1:   
-            last_x = line['boundingBox'][0]
-            lu_b_x = line['boundingBox'][0]
-            lu_b_y = line['boundingBox'][1]
-            rd_b_x = line['boundingBox'][4]
-            rd_b_y = line['boundingBox'][5]
-            my_line_str += line['text'] + ' '
-            continue
+    for line in afile['recognitionResults'][0]['lines']:
+        if json_rotate < 180:
+            if last_x == -1:   
+                last_x = line['boundingBox'][0]
+                lu_b_x = line['boundingBox'][0]
+                lu_b_y = line['boundingBox'][1]
+                rd_b_x = line['boundingBox'][4]
+                rd_b_y = line['boundingBox'][5]
+                my_line_str += line['text'] + ' '
+                continue
 
-        now_x = line['boundingBox'][0]
-        if now_x < last_x:
-            my_line_list.append(my_line_str[:-1])
-            line_dict = {'boundingBox':[lu_b_x,lu_b_y,rd_b_x,lu_b_y,rd_b_x,rd_b_y,lu_b_x,rd_b_y], 'text':my_line_str}
-            dict_list.append(line_dict)
+            now_x = line['boundingBox'][0]
+            if now_x < last_x:
+                my_line_list.append(my_line_str[:-1])
+                line_dict = {'boundingBox':[lu_b_x,lu_b_y,rd_b_x,lu_b_y,rd_b_x,rd_b_y,lu_b_x,rd_b_y], 'text':my_line_str}
+                dict_list.append(line_dict)
 
-            my_line_str = line['text'] + ' '
-            last_x = now_x
-            lu_b_x = line['boundingBox'][0]
-            lu_b_y = line['boundingBox'][1]
-            rd_b_x = line['boundingBox'][4]
-            rd_b_y = line['boundingBox'][5]
+                my_line_str = line['text'] + ' '
+                last_x = now_x
+                lu_b_x = line['boundingBox'][0]
+                lu_b_y = line['boundingBox'][1]
+                rd_b_x = line['boundingBox'][4]
+                rd_b_y = line['boundingBox'][5]
 
+            else:
+                my_line_str += line['text'] + ' '
+                last_x = now_x
+                rd_b_x = line['boundingBox'][4]
+                rd_b_y = line['boundingBox'][5]
         else:
-            my_line_str += line['text'] + ' '
-            last_x = now_x
-            rd_b_x = line['boundingBox'][4]
-            rd_b_y = line['boundingBox'][5]
+            if last_x == -1:   
+                last_x = line['boundingBox'][0]
+                lu_b_x = line['boundingBox'][6]
+                lu_b_y = line['boundingBox'][7]
+                rd_b_x = line['boundingBox'][2]
+                rd_b_y = line['boundingBox'][3]
+                my_line_str += line['text'] + ' '
+                continue
 
+            now_x = line['boundingBox'][0]
+            if now_x < last_x:
+                my_line_list.append(my_line_str[:-1])
+                line_dict = {'boundingBox':[lu_b_x,rd_b_y,rd_b_x,rd_b_y,rd_b_x,lu_b_y,lu_b_x,lu_b_y], 'text':my_line_str}
+                dict_list.append(line_dict)
+
+                my_line_str = line['text'] + ' '
+                last_x = now_x
+                lu_b_x = line['boundingBox'][0]
+                lu_b_y = line['boundingBox'][1]
+                rd_b_x = line['boundingBox'][4]
+                rd_b_y = line['boundingBox'][5]
+
+            else:
+                my_line_str += line['text'] + ' '
+                last_x = now_x
+                rd_b_x = line['boundingBox'][4]
+                rd_b_y = line['boundingBox'][5]
     my_line_list.append(my_line_str[:-1])
-    line_dict = {'boundingBox':[lu_b_x,lu_b_y,rd_b_x,lu_b_y,rd_b_x,rd_b_y,lu_b_x,rd_b_y], 'text':my_line_str}
+    if json_rotate > 180:
+        line_dict = {'boundingBox':[lu_b_x,rd_b_y,rd_b_x,rd_b_y,rd_b_x,lu_b_y,lu_b_x,lu_b_y], 'text':my_line_str}
+    else:
+        line_dict = {'boundingBox':[lu_b_x,lu_b_y,rd_b_x,lu_b_y,rd_b_x,rd_b_y,lu_b_x,rd_b_y], 'text':my_line_str}
     dict_list.append(line_dict)
     ###### save new line as json file
     with open('./my_line/' + name_list[count], 'w') as f:

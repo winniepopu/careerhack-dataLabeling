@@ -10,6 +10,7 @@ import glob
 import json
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from nltk.tokenize import word_tokenize
+import numpy as np
 import pdb
 
 image_list = []
@@ -25,6 +26,8 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         super(ExampleApp, self).__init__(parent)
         self.setupUi(self)
         self.selectbox = []
+
+
         # read picture
         for filename in glob.glob('./train/train/Input/*.jpg'):  # set input dir
             name_list.append(filename[-17:])
@@ -98,7 +101,39 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         if event.button() == QtCore.Qt.LeftButton:
             m_x = event.pos().x()
             m_y = event.pos().y()
-            in_bbox = []
+            #in_bbox = []
+            is_find = False
+            for bbox in bbox_list:
+                bbox_vec = np.array([bbox['boundingBox'][2]*self.resize_ratio - bbox['boundingBox'][0]*self.resize_ratio, bbox['boundingBox'][3]*self.resize_ratio - bbox['boundingBox'][1]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][0]*self.resize_ratio, m_y - bbox['boundingBox'][1]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    continue
+                bbox_vec = np.array([bbox['boundingBox'][4]*self.resize_ratio - bbox['boundingBox'][2]*self.resize_ratio, bbox['boundingBox'][5]*self.resize_ratio - bbox['boundingBox'][3]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][2]*self.resize_ratio, m_y - bbox['boundingBox'][3]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    continue
+                bbox_vec = np.array([bbox['boundingBox'][6]*self.resize_ratio - bbox['boundingBox'][4]*self.resize_ratio, bbox['boundingBox'][7]*self.resize_ratio - bbox['boundingBox'][5]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][4]*self.resize_ratio, m_y - bbox['boundingBox'][5]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    continue
+                bbox_vec = np.array([bbox['boundingBox'][0]*self.resize_ratio - bbox['boundingBox'][6]*self.resize_ratio, bbox['boundingBox'][1]*self.resize_ratio - bbox['boundingBox'][7]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][6]*self.resize_ratio, m_y - bbox['boundingBox'][7]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    continue
+                else:
+                    print(m_x, m_y)
+                    is_find = True
+                    # print(bbox)
+                    put_in_json.append(bbox)
+                    break
+
+            if is_find == False:
+                print('this position doesn\'t have bbox!')
+                
             if self.rotate_type == 0:
                 in_bbox = list(map(lambda bbox: bbox['boundingBox'][0]*self.resize_ratio <= m_x and bbox['boundingBox'][1]*self.resize_ratio <=
                                    m_y and bbox['boundingBox'][4]*self.resize_ratio >= m_x and bbox['boundingBox'][5]*self.resize_ratio >= m_y, bbox_list))
@@ -119,7 +154,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                 # print("json: ", put_in_json)
                 put_in_json.append(bbox_list[which_bbox])
                 # print("bbox: ", bbox_list[which_bbox])
-                print("Before: ", self.selectbox)
+                # print("Before: ", self.selectbox)
                 print("which_bbox: ", which_bbox)
                 flag = False
                 for i in self.selectbox:
@@ -205,11 +240,14 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         self.get_select_vec()
         self.write_json()
         self.cursor += 1
+
+
         bbox_list.clear()
         put_in_json.clear()
         if self.cursor >= len(image_list):
             print('all done!')
             self.Cancel()
+        print("cursor: ",name_list[self.cursor])
         self.changeStatus(self, name_list[self.cursor])
 
         self.qim = ImageQt(image_list[self.cursor])
@@ -270,8 +308,21 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
 
 ############################################
     def write_json(self):
+        #print(put_in_json)
         if len(put_in_json) == 0:
             return
+
+        # sort the lift of dict according to their value in 'index' (ascending order)
+        put_in_json.sort(key=lambda k: k['index'], reverse=False)
+        
+        # remove the redundant tokens ('index', 'confidence')
+        for bbox in put_in_json:
+            # print(bbox)
+            if bbox.__contains__('confidence'):
+                del bbox['confidence']
+            if bbox.__contains__('index'):
+                del bbox['index']
+        
         output_format = {'text': '', 'elements': []}
         text = ''
         for bbox in put_in_json:
@@ -285,6 +336,8 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         output_format['text'] = text[:-1]
         output_dir = './output/' + \
             name_list[self.cursor][:-3] + 'json'  # set output dir
+        print("write: ",output_format)
+        
         with open(output_dir, 'w') as outfile:
             json.dump(output_format, outfile)
 
@@ -314,8 +367,11 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
 ############################################
     def reset(self):
         # print(put_in_json)
+        self.selectbox.clear()
         put_in_json.clear()
         print('reset!')
+        self.update()
+        
 
 ############################################
     def bbox(self, qp):
@@ -328,9 +384,16 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         mark_first = 0
         global run_first
         qp.setPen(QPen(QColor(200, 0, 0),  1, QtCore.Qt.SolidLine))
+
+        # the index of bbox
+        box_index = 0
         for line in json_line:
             for word in line['words']:
+                # adding index to dict (used for sorting)
+                word['index'] = box_index
+                box_index = box_index + 1
                 bbox_list.append(word)
+                # print(word)
                 line_position = word['boundingBox']
                 if run_first == False:
                     if mark_bbox == None:
@@ -340,11 +403,9 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                             m_brush = QBrush(
                                 QColor(0, 200, 200, 100), QtCore.Qt.SolidPattern)
                             qp.setBrush(m_brush)
-                            # print("w: ", word.index(True))
-
-                            print("mark_box: ", mark_bbox)
-                            # self.selectbox.append(in_bbox)
+                            self.selectbox.append(word['index'])
                             mark_first = 1
+                            print("bbox_index: ",self.selectbox)
 
                     else:
                         qp.setBrush(QtCore.Qt.NoBrush)
