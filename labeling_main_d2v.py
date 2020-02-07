@@ -182,11 +182,14 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
 
 ############################################
     def write_json(self):
+        #print(put_in_json)
         if len(put_in_json) == 0:
             return
         output_format = {'text': '', 'elements': []}
         text = ''
         for bbox in put_in_json:
+            if ('text' in bbox) == False:
+                continue
             text += bbox['text']+' '
             del bbox['text']
             if bbox.__contains__('confidence'):
