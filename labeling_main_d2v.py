@@ -128,7 +128,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                     print(m_x, m_y)
                     is_find = True
                     # print(bbox)
-                    put_in_json.append(bbox)
+                    # put_in_json.append(bbox)
                     break
 
             if is_find == False:
@@ -152,7 +152,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                 which_bbox = in_bbox.index(True)
                 # global put_in_json
                 # print("json: ", put_in_json)
-                put_in_json.append(bbox_list[which_bbox])
+                # put_in_json.append(bbox_list[which_bbox])
                 # print("bbox: ", bbox_list[which_bbox])
                 # print("Before: ", self.selectbox)
                 print("which_bbox: ", which_bbox)
@@ -161,6 +161,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                     if i == which_bbox:
                         flag = True
                         self.selectbox.remove(which_bbox)
+                        # put_in_json.
                         break
                 if flag == False:
                     self.selectbox.append(which_bbox)
@@ -174,7 +175,14 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
 
                 print("After: ", self.selectbox)
 
+                global put_in_json 
+                put_in_json= []
+                for i in self.selectbox:
+                    put_in_json.append(bbox_list[i])
+                print("PP: ",put_in_json)
+
                 self.mode = 1
+                self.arrange_json()
                 self.update()
 
             except ValueError:
@@ -270,11 +278,15 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         run_first = False
         self.mode = 0
         self.selectbox = []
+        self.arrange_json()
+        
+        
 
         self.update()
 
 ############################################
     def last(self):
+
         self.get_select_vec()
         self.write_json()
         self.cursor -= 1
@@ -303,18 +315,41 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
 
         global run_first
         run_first = False
+        self.selectbox=[]
 
         self.update()
+    def arrange_json(self):
+        # if len(put_in_json) == 0:
+        #     return
+
+        # sort the lift of dict according to their value in 'index' (ascending order)
+        if len(put_in_json) != 0:
+            put_in_json.sort(key=lambda k: k['index'], reverse=False)
+
+        textlist = []
+        for ele in put_in_json:
+            # print("ele text:" , ele["text"])
+            textlist.append(ele["text"])
+            
+        words = str(textlist)
+        print("??? : ",words)
+        # if words:
+        self.show_json(words)
+        # else:
+        #     self.show_json("")
+        
+        
+        
+ 
 
 ############################################
     def write_json(self):
-        #print(put_in_json)
         if len(put_in_json) == 0:
             return
 
         # sort the lift of dict according to their value in 'index' (ascending order)
         put_in_json.sort(key=lambda k: k['index'], reverse=False)
-        
+
         # remove the redundant tokens ('index', 'confidence')
         for bbox in put_in_json:
             # print(bbox)
@@ -336,7 +371,9 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         output_format['text'] = text[:-1]
         output_dir = './output/' + \
             name_list[self.cursor][:-3] + 'json'  # set output dir
-        print("write: ",output_format)
+        print("write: ",output_format)       
+        #print(put_in_json)
+ 
         
         with open(output_dir, 'w') as outfile:
             json.dump(output_format, outfile)
@@ -370,7 +407,9 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         self.selectbox.clear()
         put_in_json.clear()
         print('reset!')
+        self.arrange_json()
         self.update()
+
         
 
 ############################################
@@ -406,6 +445,10 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                             self.selectbox.append(word['index'])
                             mark_first = 1
                             print("bbox_index: ",self.selectbox)
+                            
+                            for i in self.selectbox:
+                                put_in_json.append(bbox_list[i])
+                            self.arrange_json()
 
                     else:
                         qp.setBrush(QtCore.Qt.NoBrush)

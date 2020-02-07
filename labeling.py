@@ -10,6 +10,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -47,6 +48,22 @@ class Ui_MainWindow(object):
         self.pushButton_3.clicked.connect(MainWindow.last)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+        self.label2 = QtWidgets.QLabel(self.centralwidget)
+        self.label2.setWordWrap(True)
+        self.label2.setGeometry(QtCore.QRect(600, 200, 300, 500))
+        # self.label.setText("")/
+        # self.label2 = QLabel(self)
+        # self.label2.setFixedWidth(400)
+        # self.label2.setFixedHeight(400)
+        # self.label2.setAlignment(Qt.AlignCenter)
+        self.label2.setText("init")
+
+    def show_json(self,selected_jsons):
+        self.label2.clear()
+        self.label2.setText(selected_jsons)
+
+
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
