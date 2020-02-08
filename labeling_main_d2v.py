@@ -432,9 +432,12 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
         qp.setPen(QPen(QColor(200, 0, 0),  1, QtCore.Qt.SolidLine))
 
         # the index of bbox
-        box_index = 0
+        box_index = 0   
+
         for line in json_line:
             for word in line['words']:
+                box = []
+                box.clear()
                 # adding index to dict (used for sorting)
                 word['index'] = box_index
                 box_index = box_index + 1
@@ -446,16 +449,23 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                         pass
                     elif (line_position[0] + line_position[2])/2 >= mark_bbox[0] and (line_position[1] + line_position[7])/2 >= mark_bbox[1] and (line_position[0] + line_position[2])/2 <= mark_bbox[4] and (line_position[1] + line_position[7])/2 <= mark_bbox[5]:
                         if (mark_bbox[0] + mark_bbox[2])/2 < (line_position[0] + line_position[2])/2:
+                            print("box: " ,box)
                             m_brush = QBrush(
                                 QColor(0, 200, 200, 100), QtCore.Qt.SolidPattern)
                             qp.setBrush(m_brush)
                             self.selectbox.append(word['index'])
                             mark_first = 1
                             print("bbox_index: ",self.selectbox)
-                            
+
                             for i in self.selectbox:
-                                put_in_json.append(bbox_list[i])
+                                box.append(bbox_list[i])
+                            print("arrange_json")
+                            global put_in_json 
+                            put_in_json= box
                             self.arrange_json()
+
+                            
+
 
                     else:
                         qp.setBrush(QtCore.Qt.NoBrush)
@@ -489,6 +499,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                     qp.drawPolygon(QPolygon(points))
 
         run_first = True
+
 
 ############################################
     def mark_line(self, qp, json_rotate):
