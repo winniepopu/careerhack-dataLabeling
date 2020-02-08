@@ -196,7 +196,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                 print('this position dosen\'t have bbox!')
 
         elif event.button() == QtCore.Qt.RightButton:
-            global put_in_json 
+            #global put_in_json 
             m_x = event.pos().x()
             m_y = event.pos().y()
             select_line = []
@@ -245,7 +245,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                     for word in line['words']:
                         
                         if select_line[2] >= (word['boundingBox'][0] + word['boundingBox'][2])/2 and select_line[0] <= (word['boundingBox'][0] + word['boundingBox'][2])/2 and (word['boundingBox'][1] + word['boundingBox'][7])/2 >= select_line[1] and (word['boundingBox'][1] + word['boundingBox'][7])/2 <= select_line[5]:
-                            print(word)
+                            #print(word)
                             put_in_json.append(word)
                             put_in_word_id.append(count)
 
@@ -261,10 +261,10 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                 
                 
             
-            put_in_json= []
+            put_in_json.clear()
             for i in self.selectbox:
                 put_in_json.append(bbox_list[i])
-            print("PP: ",put_in_json)
+            #print("PP: ",put_in_json)
 
             self.mode = 1
             self.arrange_json()
