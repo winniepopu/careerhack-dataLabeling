@@ -52,6 +52,7 @@ class Ui_MainWindow(object):
         self.label2 = QtWidgets.QLabel(self.centralwidget)
         self.label2.setWordWrap(True)
         self.label2.setGeometry(QtCore.QRect(600, 200, 300, 500))
+        self.label2.setFont(QtGui.QFont("Times", 18, QtGui.QFont.Bold))
         # self.label.setText("")/
         # self.label2 = QLabel(self)
         # self.label2.setFixedWidth(400)

@@ -243,7 +243,7 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
 
 
     def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Z:
+        if event.key() == QtCore.Qt.Key_C:
             self.next()
         elif event.key() == QtCore.Qt.Key_X:
             self.reset()
