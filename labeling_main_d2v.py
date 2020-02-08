@@ -103,26 +103,34 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
             m_y = event.pos().y()
             #in_bbox = []
             is_find = False
+            
+            which_bbox = 0
+
+            print("b_whichindex: ",which_bbox)
             for bbox in bbox_list:
                 bbox_vec = np.array([bbox['boundingBox'][2]*self.resize_ratio - bbox['boundingBox'][0]*self.resize_ratio, bbox['boundingBox'][3]*self.resize_ratio - bbox['boundingBox'][1]*self.resize_ratio])
                 center_vec = np.array([m_x - bbox['boundingBox'][0]*self.resize_ratio, m_y - bbox['boundingBox'][1]*self.resize_ratio])
                 vec_mul = np.cross(bbox_vec, center_vec)
                 if vec_mul < 0:
+                    which_bbox += 1
                     continue
                 bbox_vec = np.array([bbox['boundingBox'][4]*self.resize_ratio - bbox['boundingBox'][2]*self.resize_ratio, bbox['boundingBox'][5]*self.resize_ratio - bbox['boundingBox'][3]*self.resize_ratio])
                 center_vec = np.array([m_x - bbox['boundingBox'][2]*self.resize_ratio, m_y - bbox['boundingBox'][3]*self.resize_ratio])
                 vec_mul = np.cross(bbox_vec, center_vec)
                 if vec_mul < 0:
+                    which_bbox += 1
                     continue
                 bbox_vec = np.array([bbox['boundingBox'][6]*self.resize_ratio - bbox['boundingBox'][4]*self.resize_ratio, bbox['boundingBox'][7]*self.resize_ratio - bbox['boundingBox'][5]*self.resize_ratio])
                 center_vec = np.array([m_x - bbox['boundingBox'][4]*self.resize_ratio, m_y - bbox['boundingBox'][5]*self.resize_ratio])
                 vec_mul = np.cross(bbox_vec, center_vec)
                 if vec_mul < 0:
+                    which_bbox += 1
                     continue
                 bbox_vec = np.array([bbox['boundingBox'][0]*self.resize_ratio - bbox['boundingBox'][6]*self.resize_ratio, bbox['boundingBox'][1]*self.resize_ratio - bbox['boundingBox'][7]*self.resize_ratio])
                 center_vec = np.array([m_x - bbox['boundingBox'][6]*self.resize_ratio, m_y - bbox['boundingBox'][7]*self.resize_ratio])
                 vec_mul = np.cross(bbox_vec, center_vec)
                 if vec_mul < 0:
+                    which_bbox += 1
                     continue
                 else:
                     print(m_x, m_y)
@@ -130,41 +138,39 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                     # print(bbox)
                     # put_in_json.append(bbox)
                     break
-
+            
             if is_find == False:
                 print('this position doesn\'t have bbox!')
                 
-            if self.rotate_type == 0:
-                in_bbox = list(map(lambda bbox: bbox['boundingBox'][0]*self.resize_ratio <= m_x and bbox['boundingBox'][1]*self.resize_ratio <=
-                                   m_y and bbox['boundingBox'][4]*self.resize_ratio >= m_x and bbox['boundingBox'][5]*self.resize_ratio >= m_y, bbox_list))
-            elif self.rotate_type == 1:
-                in_bbox = list(map(lambda bbox: bbox['boundingBox'][1]*self.resize_ratio <= m_x and self.label.height()-bbox['boundingBox'][0]*self.resize_ratio <=
-                                   m_y and bbox['boundingBox'][5]*self.resize_ratio >= m_x and self.label.height()-bbox['boundingBox'][4]*self.resize_ratio >= m_y, bbox_list))
-            elif self.rotate_type == 2:
-                in_bbox = list(map(lambda bbox: bbox['boundingBox'][1]*self.resize_ratio <= m_x and bbox['boundingBox'][0]*self.resize_ratio <=
-                                   m_y and bbox['boundingBox'][5]*self.resize_ratio >= m_x and bbox['boundingBox'][4]*self.resize_ratio >= m_y, bbox_list))
-            elif self.rotate_type == 3:
-                in_bbox = list(map(lambda bbox: bbox['boundingBox'][0]*self.resize_ratio <= m_x and self.label.height()-bbox['boundingBox'][1]*self.resize_ratio <=
-                                   m_y and bbox['boundingBox'][4]*self.resize_ratio >= m_x and self.label.height()-bbox['boundingBox'][5]*self.resize_ratio >= m_y, bbox_list))
-            print(m_x, m_y)
+            # if self.rotate_type == 0:
+            #     in_bbox = list(map(lambda bbox: bbox['boundingBox'][0]*self.resize_ratio <= m_x and bbox['boundingBox'][1]*self.resize_ratio <=
+            #                        m_y and bbox['boundingBox'][4]*self.resize_ratio >= m_x and bbox['boundingBox'][5]*self.resize_ratio >= m_y, bbox_list))
+            # elif self.rotate_type == 1:
+            #     in_bbox = list(map(lambda bbox: bbox['boundingBox'][1]*self.resize_ratio <= m_x and self.label.height()-bbox['boundingBox'][0]*self.resize_ratio <=
+            #                        m_y and bbox['boundingBox'][5]*self.resize_ratio >= m_x and self.label.height()-bbox['boundingBox'][4]*self.resize_ratio >= m_y, bbox_list))
+            # elif self.rotate_type == 2:
+            #     in_bbox = list(map(lambda bbox: bbox['boundingBox'][1]*self.resize_ratio <= m_x and bbox['boundingBox'][0]*self.resize_ratio <=
+            #                        m_y and bbox['boundingBox'][5]*self.resize_ratio >= m_x and bbox['boundingBox'][4]*self.resize_ratio >= m_y, bbox_list))
+            # elif self.rotate_type == 3:
+            #     in_bbox = list(map(lambda bbox: bbox['boundingBox'][0]*self.resize_ratio <= m_x and self.label.height()-bbox['boundingBox'][1]*self.resize_ratio <=
+            #                        m_y and bbox['boundingBox'][4]*self.resize_ratio >= m_x and self.label.height()-bbox['boundingBox'][5]*self.resize_ratio >= m_y, bbox_list))
+            # print(m_x, m_y)
 
             try:
-                which_bbox = in_bbox.index(True)
-                # global put_in_json
-                # print("json: ", put_in_json)
-                # put_in_json.append(bbox_list[which_bbox])
-                # print("bbox: ", bbox_list[which_bbox])
-                # print("Before: ", self.selectbox)
+                # which_bbox = in_bbox.index(True)
+
                 print("which_bbox: ", which_bbox)
-                flag = False
-                for i in self.selectbox:
-                    if i == which_bbox:
-                        flag = True
-                        self.selectbox.remove(which_bbox)
-                        # put_in_json.
-                        break
-                if flag == False:
-                    self.selectbox.append(which_bbox)
+                
+                if is_find == True:
+                    flag = False
+                    for i in self.selectbox:
+                        if i == which_bbox:
+                            flag = True
+                            self.selectbox.remove(which_bbox)
+                            # put_in_json.
+                            break
+                    if flag == False:
+                        self.selectbox.append(which_bbox)
                 # for i in put_in_json:
                 #     if i == which_bbox:
                 #         flag = True
@@ -174,7 +180,8 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
                 #     put_in_json.append(which_bbox)
 
                 print("After: ", self.selectbox)
-
+                print("is_find: ",is_find)
+                
                 global put_in_json 
                 put_in_json= []
                 for i in self.selectbox:

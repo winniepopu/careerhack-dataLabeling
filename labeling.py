@@ -18,7 +18,7 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(0, 0, 400, 800))
+        self.label.setGeometry(QtCore.QRect(0, 0, 500, 800))
         self.label.setText("")
         self.label.setObjectName("label")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
