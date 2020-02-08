@@ -195,6 +195,81 @@ class ExampleApp(QtWidgets.QMainWindow, labeling.Ui_MainWindow):
             except ValueError:
                 print('this position dosen\'t have bbox!')
 
+        elif event.button() == QtCore.Qt.RightButton:
+            #global put_in_json 
+            m_x = event.pos().x()
+            m_y = event.pos().y()
+            select_line = []
+            put_in_word_id = []
+            is_find = False
+            count = 0
+            for bbox in self.my_line_list:
+                bbox_vec = np.array([bbox['boundingBox'][2]*self.resize_ratio - bbox['boundingBox'][0]*self.resize_ratio, bbox['boundingBox'][3]*self.resize_ratio - bbox['boundingBox'][1]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][0]*self.resize_ratio, m_y - bbox['boundingBox'][1]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    
+                    continue
+                bbox_vec = np.array([bbox['boundingBox'][4]*self.resize_ratio - bbox['boundingBox'][2]*self.resize_ratio, bbox['boundingBox'][5]*self.resize_ratio - bbox['boundingBox'][3]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][2]*self.resize_ratio, m_y - bbox['boundingBox'][3]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    
+                    continue
+                bbox_vec = np.array([bbox['boundingBox'][6]*self.resize_ratio - bbox['boundingBox'][4]*self.resize_ratio, bbox['boundingBox'][7]*self.resize_ratio - bbox['boundingBox'][5]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][4]*self.resize_ratio, m_y - bbox['boundingBox'][5]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    
+                    continue
+                bbox_vec = np.array([bbox['boundingBox'][0]*self.resize_ratio - bbox['boundingBox'][6]*self.resize_ratio, bbox['boundingBox'][1]*self.resize_ratio - bbox['boundingBox'][7]*self.resize_ratio])
+                center_vec = np.array([m_x - bbox['boundingBox'][6]*self.resize_ratio, m_y - bbox['boundingBox'][7]*self.resize_ratio])
+                vec_mul = np.cross(bbox_vec, center_vec)
+                if vec_mul < 0:
+                    
+                    continue
+                else:
+                    is_find = True
+                    select_line = bbox['boundingBox']
+                    # print(bbox)
+                    # put_in_json.append(bbox)
+                    break
+
+            if(len(select_line) != 0):
+                print('find line')
+                json_path = './train/train/Input/' + \
+                    name_list[self.cursor][:-3] + 'json'  # set input dir
+                json_dict = json.load(open(json_path, 'r'))
+                json_line = json_dict['recognitionResults'][0]['lines']
+                for line in json_line:
+                    for word in line['words']:
+                        
+                        if select_line[2] >= (word['boundingBox'][0] + word['boundingBox'][2])/2 and select_line[0] <= (word['boundingBox'][0] + word['boundingBox'][2])/2 and (word['boundingBox'][1] + word['boundingBox'][7])/2 >= select_line[1] and (word['boundingBox'][1] + word['boundingBox'][7])/2 <= select_line[5]:
+                            #print(word)
+                            put_in_json.append(word)
+                            put_in_word_id.append(count)
+
+                        count+=1
+            else:
+                print('no line')
+
+            if is_find == True:
+                for aid in put_in_word_id:
+                    self.selectbox.append(aid)
+                    
+
+                
+                
+            
+            put_in_json.clear()
+            for i in self.selectbox:
+                put_in_json.append(bbox_list[i])
+            #print("PP: ",put_in_json)
+
+            self.mode = 1
+            self.arrange_json()
+            self.update()
+
 ############################################
     def mark_selected(self, box_index, qp):
         # self.qp.begin(self)
